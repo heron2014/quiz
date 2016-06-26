@@ -8,6 +8,7 @@
   var questions;
   var quizDiv = document.querySelector('.quiz');
   var choices = document.getElementsByName("choices");
+  var a =document.getElementById('res');
 
   function nodeListToArray(nodelist) {
     return Array.prototype.slice.call(nodelist);
@@ -42,6 +43,7 @@
       if (pos >= questions.length) {
         quizDiv.innerHTML = "<h3>No more questions</h3>";
         pos = 0;
+
         return false;
       }
 
@@ -68,9 +70,13 @@
       renderQuestion(pos);
     });
 
-    socket.on('message', function (d) {
-      console.log(d.text);
-    })
+    socket.on('correct', function (d) {
+      if (pos >= questions.length) {
+        a.textContent = '';
+        return false;
+      }
+      a.textContent = d.text;
+    });
 
   });
 
