@@ -7,6 +7,20 @@
   var pos = 0;
   var questions;
   var quizDiv = document.querySelector('.quiz');
+  var choices = document.getElementsByName("choices");
+
+  function nodeListToArray(nodelist) {
+    return Array.prototype.slice.call(nodelist);
+  }
+
+  function checkAnswer(choices) {
+    for(var i=0; i<choices.length; i++){
+      if(choices[i].checked){
+        var choice = choices[i].value;
+      }
+    }
+    return choice;
+  }
 
   socket.on('connect', function () {
     // console.log('Client conecting to server via socket');
@@ -23,7 +37,14 @@
     })
 
 
-    function renderQuestion(pos){
+    function renderQuestion(pos) {
+
+      if (pos >= questions.length) {
+        quizDiv.innerHTML = "<h3>No more questions</h3>";
+        pos = 0;
+        return false;
+      }
+
       question = questions[pos].question;
 
       quizDiv.innerHTML = "<h3>"+question+"</h3>";
@@ -39,18 +60,16 @@
     	// quizDiv.innerHTML += "<button class='btn'>Submit Answer</button>";
     }
     document.querySelector('.next').addEventListener('click', function () {
+
+      var checkedAnswer = checkAnswer(choices);
+      socket.emit('answers', checkedAnswer);
+
       pos++;
-      console.log(pos);
+      renderQuestion(pos);
+    });
 
-      var choices = document.getElementsByName("choices");
-      	for(var i=0; i<choices.length; i++){
-      		if(choices[i].checked){
-      			var choice = choices[i].value;
-      		}
-      	}
-
-        console.log(choice);
-        renderQuestion(pos);
+    socket.on('message', function (d) {
+      console.log(d.text);
     })
 
   });
