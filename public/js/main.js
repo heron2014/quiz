@@ -2,25 +2,30 @@
 
   'use strict';
 
-  var socket = io();
-  var question, chA,chB,chC;
-  var pos = 0;
-  var questions;
-  var quizDiv = document.querySelector('.quiz');
-  var choices = document.getElementsByName("choices");
-  var a =document.getElementById('res');
+  var socket = io(),
+      question,
+      chA,
+      chB,
+      chC,
+      pos = 0,
+      questions,
+      doc = document,
+      quizDiv = doc.querySelector('.quiz'),
+      choices = doc.getElementsByName("choices"),
+      res = doc.getElementById('res');
 
   function nodeListToArray(nodelist) {
     return Array.prototype.slice.call(nodelist);
   }
 
   function checkAnswer(choices) {
-    for(var i=0; i<choices.length; i++){
-      if(choices[i].checked){
-        var choice = choices[i].value;
+    var res = [];
+    nodeListToArray(choices).forEach(function (choice) {
+      if (choice.checked) {
+        res.push(choice.value);
       }
-    }
-    return choice;
+    });
+    return res.toString();
   }
 
   socket.on('connect', function () {
@@ -30,11 +35,11 @@
   socket.on('questions', function (data) {
     questions = data.questions;
 
-    document.getElementById('start').addEventListener('click', function() {
+    doc.getElementById('start').addEventListener('click', function() {
 
       renderQuestion(pos);
-      document.querySelector('.next').style.display = 'block';
-      document.getElementById('start').style.display = 'none';
+      doc.querySelector('.next').style.display = 'block';
+      doc.getElementById('start').style.display = 'none';
     })
 
 
@@ -50,18 +55,20 @@
       question = questions[pos].question;
 
       quizDiv.innerHTML = "<h3>"+question+"</h3>";
-    	document.querySelector('#title').innerHTML = "Question "+ (pos + 1) +" of "+ questions.length;
+    	doc.querySelector('#title').innerHTML = "Question "+ (pos + 1) +" of "+ questions.length;
     	question = questions[pos].question;
     	chA = questions[pos].choices[0];
     	chB = questions[pos].choices[1];
     	chC = questions[pos].choices[2];
     	quizDiv.innerHTML = "<h3>"+question+"</h3>";
-    	quizDiv.innerHTML += "<input type='radio' name='choices' value='A'> "+chA+"<br>";
-    	quizDiv.innerHTML += "<input type='radio' name='choices' value='B'> "+chB+"<br>";
-    	quizDiv.innerHTML += "<input type='radio' name='choices' value='C'> "+chC+"<br><br>";
-    	// quizDiv.innerHTML += "<button class='btn'>Submit Answer</button>";
+      quizDiv.innerHTML += "<form>";
+    	quizDiv.innerHTML += "<input type='radio' required name='choices' value='A'> "+chA+"<br>";
+    	quizDiv.innerHTML += "<input type='radio'  name='choices' value='B'> "+chB+"<br>";
+    	quizDiv.innerHTML += "<input type='radio'  name='choices' value='C'> "+chC+"<br><br>";
+      quizDiv.innerHTML += "</form>";
+      // quizDiv.innerHTML += "<button class='btn'>Submit Answer</button>";
     }
-    document.querySelector('.next').addEventListener('click', function () {
+    doc.querySelector('.next').addEventListener('click', function () {
 
       var checkedAnswer = checkAnswer(choices);
       socket.emit('answers', checkedAnswer);
@@ -70,12 +77,12 @@
       renderQuestion(pos);
     });
 
-    socket.on('correct', function (d) {
+    socket.on('correct', function (data) {
       if (pos >= questions.length) {
-        a.textContent = '';
+        res.textContent = '';
         return false;
       }
-      a.textContent = d.text;
+      res.textContent = data.text;
     });
 
   });
